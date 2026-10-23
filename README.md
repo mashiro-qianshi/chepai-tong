@@ -12,6 +12,8 @@
 
 **重新打包**：在 `android/` 目录运行 `powershell -ExecutionPolicy Bypass -File build.ps1`（需先有 SDK，见 `android/download_sdk.py`）。
 
+**详细发版流程**：见 [RELEASE.md](RELEASE.md)。
+
 ---
 
 ## ✨ 功能一览
