@@ -1,0 +1,16 @@
+{
+  "name": "车牌通 · 全国车牌速记",
+  "short_name": "车牌通",
+  "description": "记忆全国车牌号与城市特色（人文历史、风景、美食）的轻量工具",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f3f5f9",
+  "theme_color": "#1d4ed8",
+  "lang": "zh-CN",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

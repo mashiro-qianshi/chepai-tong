@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#1d4ed8">
+<title>车牌通 · 全国车牌速记</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- 顶栏 -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="plate-badge">牌</span>
+      <div class="brand-text">
+        <h1>车牌通</h1>
+        <p>全国车牌 · 城市特色速记</p>
+      </div>
+    </div>
+    <div class="stats-pill">
+      <span class="stat flame"><span class="ic" data-icon="flame" data-size="16"></span><b id="streakTop">0</b></span>
+      <span class="stat xp"><span class="ic" data-icon="star" data-size="16"></span><b id="xpTop">0</b></span>
+    </div>
+  </header>
+
+  <!-- 主内容 -->
+  <main class="content">
+
+    <!-- 视图：地图 / 学习 -->
+    <section class="view" id="view-map">
+      <div class="hero">
+        <div class="hero-text">
+          <h2>点亮你的车牌地图</h2>
+          <p>已掌握 <b id="masteredCount">0</b> / <b id="totalCount">0</b> 个城市</p>
+        </div>
+        <div class="ring" id="ringProgress">
+          <svg viewBox="0 0 80 80">
+            <circle cx="40" cy="40" r="34" class="ring-bg"/>
+            <circle cx="40" cy="40" r="34" class="ring-fg" id="ringFg"/>
+          </svg>
+          <span id="ringPct">0%</span>
+        </div>
+      </div>
+
+      <div class="map-card">
+        <div id="chinaMap"></div>
+        <p class="map-hint">点击城市查看详情 · 绿色已掌握 · 黄色待巩固 · 灰色未点亮</p>
+      </div>
+
+      <div class="search-row">
+        <input id="searchInput" type="search" placeholder="搜索车牌(如 粤B) 或 城市(如 深圳)" autocomplete="off">
+      </div>
+
+      <div class="region-tabs" id="regionTabs"></div>
+
+      <div class="province-list" id="provinceList"></div>
+    </section>
+
+    <!-- 视图：闪卡 -->
+    <section class="view hidden" id="view-flash">
+      <div class="filter-row">
+        <select id="flashProvince" class="select"></select>
+        <button class="btn ghost" id="flashShuffle"><span class="ic" data-icon="shuffle" data-size="18"></span>打乱</button>
+      </div>
+      <div class="flash-stack" id="flashStack"></div>
+      <div class="flash-actions">
+        <button class="btn danger" id="flashForgot"><span class="ic" data-icon="x" data-size="18"></span>还没记住</button>
+        <button class="btn success" id="flashGot"><span class="ic" data-icon="check" data-size="18"></span>记住了</button>
+      </div>
+      <p class="hint" id="flashHint">点击卡片翻面 · 根据记忆程度点下方按钮</p>
+    </section>
+
+    <!-- 视图：练习 -->
+    <section class="view hidden" id="view-quiz">
+      <div class="quiz-setup" id="quizSetup">
+        <h3>选择范围</h3>
+        <select id="quizProvince" class="select"></select>
+        <h3>选择练习模式</h3>
+        <button class="mode-card" data-mode="plate2city">
+          <span class="ic mode-emoji" data-icon="hash" data-size="26"></span>
+          <div><b>看车牌 · 选城市</b><p>给出车牌，选对应城市</p></div>
+        </button>
+        <button class="mode-card" data-mode="city2plate">
+          <span class="ic mode-emoji" data-icon="building" data-size="26"></span>
+          <div><b>看城市 · 选车牌</b><p>给出城市，选对应车牌</p></div>
+        </button>
+        <button class="mode-card" data-mode="daily">
+          <span class="ic mode-emoji" data-icon="zap" data-size="26"></span>
+          <div><b>每日挑战</b><p>20 道混合题，打卡不断签</p></div>
+        </button>
+      </div>
+
+      <div class="quiz-body hidden" id="quizBody">
+        <div class="quiz-top">
+          <span id="quizProgress">1 / 10</span>
+          <span id="quizScore">答对 0 · 答错 0</span>
+        </div>
+        <div class="quiz-question" id="quizQuestion"></div>
+        <div class="quiz-options" id="quizOptions"></div>
+        <button class="btn ghost block" id="quizQuit">退出练习</button>
+      </div>
+
+      <div class="quiz-result hidden" id="quizResult"></div>
+    </section>
+
+    <!-- 视图：我的 -->
+    <section class="view hidden" id="view-me">
+      <div class="level-card">
+        <div class="level-info">
+          <div class="level-badge"><img class="avatar-img" src="avatar.png" alt="头像"></div>
+          <div>
+            <h2 id="levelName">车牌学徒</h2>
+            <p id="levelDesc">继续加油！</p>
+          </div>
+        </div>
+        <div class="level-bar"><div class="level-bar-fill" id="levelBarFill"></div></div>
+        <p class="level-xp" id="levelXp">0 / 100 XP</p>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card"><b id="statStreak">0</b><span>连续打卡(天)</span></div>
+        <div class="stat-card"><b id="statMastered">0</b><span>掌握城市</span></div>
+        <div class="stat-card"><b id="statBadges">0</b><span>获得徽章</span></div>
+        <div class="stat-card"><b id="statAnswered">0</b><span>累计答题</span></div>
+      </div>
+
+      <h3 class="section-title"><span class="ic" data-icon="award" data-size="18"></span>成就徽章</h3>
+      <div class="badge-grid" id="badgeGrid"></div>
+
+      <h3 class="section-title"><span class="ic" data-icon="book" data-size="18"></span>复习队列 <span class="sub" id="reviewCount"></span></h3>
+      <button class="btn primary block" id="reviewBtn">开始复习待巩固的城市</button>
+
+      <h3 class="section-title"><span class="ic" data-icon="sliders" data-size="18"></span>设置</h3>
+      <div class="settings-list">
+        <label class="setting-row">
+          <span class="setting-label"><span class="ic" data-icon="moon" data-size="18"></span>深色模式</span>
+          <input type="checkbox" id="darkToggle">
+        </label>
+        <label class="setting-row">
+          <span class="setting-label"><span class="ic" data-icon="bell" data-size="18"></span>声音提示</span>
+          <input type="checkbox" id="soundToggle" checked>
+        </label>
+        <button class="btn danger block" id="resetBtn"><span class="ic" data-icon="rotate" data-size="18"></span>重置全部进度</button>
+      </div>
+
+      <p class="footnote">数据来源：公开车牌规则 · 部分行政区划有调整（如莱芜并入济南）<br>本应用完全离线运行，进度保存在本机</p>
+    </section>
+  </main>
+
+  <!-- 底部导航 -->
+  <nav class="tabbar">
+    <button class="tab active" data-tab="map"><span class="ic" data-icon="map" data-size="22"></span><i>地图</i></button>
+    <button class="tab" data-tab="flash"><span class="ic" data-icon="cards" data-size="22"></span><i>闪卡</i></button>
+    <button class="tab" data-tab="quiz"><span class="ic" data-icon="target" data-size="22"></span><i>练习</i></button>
+    <button class="tab" data-tab="me"><span class="ic" data-icon="user" data-size="22"></span><i>我的</i></button>
+  </nav>
+
+</div>
+
+<!-- 城市详情弹层 -->
+<div class="modal hidden" id="cityModal">
+  <div class="modal-backdrop" id="modalBackdrop"></div>
+  <div class="modal-card" id="modalCard"></div>
+</div>
+
+<!-- 二次确认弹层 -->
+<div class="modal hidden" id="confirmModal">
+  <div class="modal-backdrop" id="confirmBackdrop"></div>
+  <div class="modal-card confirm-card">
+    <div class="confirm-title" id="confirmTitle">确认操作</div>
+    <div class="confirm-msg" id="confirmMsg">确定要执行吗？</div>
+    <div class="mc-actions" style="margin-top:18px">
+      <button class="btn ghost" id="confirmCancel">取消</button>
+      <button class="btn danger" id="confirmOk">确认</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast hidden" id="toast"></div>
+
+<script src="js/echarts.min.js"></script>
+<script src="js/china_city.js"></script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
