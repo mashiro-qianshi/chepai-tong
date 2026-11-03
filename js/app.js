@@ -71,6 +71,12 @@
   const QUIZABLE = CITIES.filter(isQuizable);
   const BY_KEY = {};
   CITIES.forEach(c => BY_KEY[c.key] = c);
+  // 同一城市可能有多个号段（如 青岛 鲁B/鲁U），按「省+城市名」分组
+  const CITY_GROUP = {};
+  CITIES.forEach(c => {
+    const g = c.abbr + '|' + c.city;
+    (CITY_GROUP[g] = CITY_GROUP[g] || []).push(c.key);
+  });
 
   // ---------- 状态 ----------
   const LS_KEY = 'chepai_state_v1';
@@ -260,6 +266,16 @@
     if (state.review[key]) return 'review';
     return 'new';
   }
+  // 地图按「城市」点亮：该城市任一號段已掌握即算点亮
+  function mapStatus(key) {
+    const c = BY_KEY[key];
+    if (!c) return cityStatus(key);
+    const keys = CITY_GROUP[c.abbr + '|' + c.city] || [key];
+    const sts = keys.map(k => cityStatus(k));
+    if (sts.indexOf('done') >= 0) return 'done';
+    if (sts.indexOf('review') >= 0) return 'review';
+    return 'new';
+  }
   function mapUnlitColor() {
     return document.body.classList.contains('dark') ? '#3c4356' : '#e2e6ef';
   }
@@ -291,14 +307,16 @@
     const feats = window.CHINA_CITY_GEO.features;
     const data = feats.map(f => {
       const key = f.properties.key;
-      const st = cityStatus(key);
+      const st = mapStatus(key);
       const c = BY_KEY[key];
+      const groupKeys = c ? (CITY_GROUP[c.abbr + '|' + c.city] || [key]) : [key];
+      const letters = groupKeys.map(k => { const cc = BY_KEY[k]; return cc ? cc.abbr + cc.letter : ''; }).filter(Boolean).join(' / ');
       return {
         name: f.properties.name,
         value: st === 'done' ? 100 : st === 'review' ? 50 : 0,
         key: key,
         city: c ? c.city : f.properties.name,
-        letter: c ? (c.abbr + c.letter) : '',
+        letter: letters,
         status: st,
         itemStyle: { areaColor: colorFor(st) }
       };
@@ -407,6 +425,8 @@
     if (!c) return;
     const done = !!state.mastered[key];
     const inReview = !!state.review[key];
+    const groupKeys = CITY_GROUP[c.abbr + '|' + c.city] || [key];
+    const platesText = groupKeys.map(k => { const cc = BY_KEY[k]; return cc ? cc.abbr + cc.letter : ''; }).filter(Boolean).join(' / ');
     $('#modalCard').innerHTML = `
       <div class="mc-plate">
         <span class="big-letter">${esc(c.abbr)}${esc(c.letter)}</span>
@@ -416,6 +436,7 @@
         </div>
         <span class="mc-status ${done ? 'lit' : inReview ? 'rev' : ''}">${done ? '已点亮' : inReview ? '待巩固' : '未点亮'}</span>
       </div>
+      ${groupKeys.length > 1 ? `<div class="mc-plates">该城市号段：${esc(platesText)}</div>` : ''}
       ${c.desc ? `<div class="mc-desc">${esc(c.desc)}</div>` : ''}
       <div class="mc-body">
         <div class="row"><span class="k k-landmark">${icon('landmark', 15)} 人文</span><span class="v">${esc(c.h || '—')}</span></div>
@@ -524,8 +545,9 @@
     renderQuizQuestion();
   }
   function quizDistractors(c) {
-    const same = QUIZABLE.filter(x => x.abbr === c.abbr && x !== c);
-    const others = QUIZABLE.filter(x => x.abbr !== c.abbr && x !== c);
+    // 同一城市可能有多个号段，干扰项必须排除「同城」的其他号段，否则选项会出现重复城市名
+    const same = QUIZABLE.filter(x => x.abbr === c.abbr && x.key !== c.key && x.city !== c.city);
+    const others = QUIZABLE.filter(x => x.abbr !== c.abbr && x.city !== c.city);
     let opts = shuffle(same).slice(0, 3);
     if (opts.length < 3) opts = opts.concat(shuffle(others).slice(0, 3 - opts.length));
     return opts;
